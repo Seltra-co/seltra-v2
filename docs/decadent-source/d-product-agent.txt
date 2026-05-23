@@ -1,0 +1,199 @@
+import { fal } from '@fal-ai/client'
+import { chat } from '../client'
+import type { CanonicalStore, GeneratedProduct } from '@seltra/types'
+
+// ── fal.ai config — move to process.env.FAL_KEY after testing ────────────────
+fal.config({
+  credentials: '646fe1af-dd7d-4204-9a8d-70e8db1aacb8:f11bdf1ee11f06497e8b6054d3fc803f', // replace with actual key, then move to .env
+})
+
+// ── fal.ai image generation ───────────────────────────────────────────────────
+async function generateImageWithFal(
+  productName: string,
+  description: string,
+  businessType: string,
+): Promise<string | null> {
+  try {
+    const prompt =
+      `Professional product photography, ${productName}, ` +
+      `${description.slice(0, 100)}, ${businessType}, ` +
+      `clean white studio background, soft box lighting, ` +
+      `commercial quality, sharp focus, 4k`
+
+    const result = await fal.subscribe('fal-ai/flux/schnell', {
+      input: {
+        prompt,
+        image_size: 'square_hd',
+        num_inference_steps: 4,
+        num_images: 1,
+      },
+    })
+
+    const images = (result.data as { images?: Array<{ url: string }> }).images
+    return images?.[0]?.url ?? null
+  } catch (err) {
+    console.error(`[ImageAgent] fal.ai failed for "${productName}":`, err)
+    return null
+  }
+}
+
+// ── Pollinations fallback — free, no key, serves on demand ───────────────────
+function buildPollinationsUrl(
+  productName: string,
+  description: string,
+  businessType: string,
+): string {
+  const prompt = encodeURIComponent(
+    `Professional product photography, ${productName}, ` +
+    `${description.slice(0, 80)}, ${businessType}, ` +
+    `clean studio background, soft lighting, commercial quality`
+  )
+  const seed = Math.floor(Math.random() * 1000000)
+  return (
+    `https://image.pollinations.ai/prompt/${prompt}` +
+    `?width=512&height=512&model=flux&nologo=true&seed=${seed}`
+  )
+}
+
+// ── System prompt ─────────────────────────────────────────────────────────────
+const PRODUCT_SYSTEM_PROMPT = `You are Seltra's Product Generator AI.
+Given a store blueprint, generate a realistic product catalog.
+
+Rules:
+1. Generate exactly 6 products.
+2. Return ONLY a valid JSON array. No markdown, no explanation, no code blocks.
+3. Use GHS (Ghanaian Cedi) as the currency.
+4. Prices must be realistic for the Ghanaian/African market.
+5. Each product must follow this exact structure:
+
+[
+  {
+    "name": "string",
+    "description": "string (2-3 sentences of compelling product copy)",
+    "price": number,
+    "currency": "GHS",
+    "category": "string (must match one of the store's productCategories)",
+    "sku": "string (e.g. SKU-001)",
+    "tags": ["string", "string"],
+    "variants": [
+      { "name": "Size", "value": "Small" },
+      { "name": "Size", "value": "Medium" },
+      { "name": "Size", "value": "Large" }
+    ]
+  }
+]`
+
+// ── JSON cleaner ──────────────────────────────────────────────────────────────
+function cleanJSON(raw: string): string {
+  let s = raw.trim()
+  if (s.startsWith('```json')) s = s.slice(7)
+  else if (s.startsWith('```')) s = s.slice(3)
+  if (s.endsWith('```')) s = s.slice(0, -3)
+  return s.trim()
+}
+
+// ── Main export ───────────────────────────────────────────────────────────────
+export async function generateProducts(blueprint: CanonicalStore): Promise<{
+  success: boolean
+  products: GeneratedProduct[]
+  provider: string
+  imageStats: { total: number; generated: number; failed: number }
+  error: string | null
+}> {
+  const FAILED = (provider: string, error: string) => ({
+    success: false,
+    products: [],
+    provider,
+    imageStats: { total: 0, generated: 0, failed: 0 },
+    error,
+  })
+
+  // 1. Generate product catalog via LLM
+  const llmResult = await chat([
+    {
+      role: 'user',
+      content:
+        `${PRODUCT_SYSTEM_PROMPT}\n\n` +
+        `Store: ${blueprint.businessName}\n` +
+        `Type: ${blueprint.businessType}\n` +
+        `Target Audience: ${blueprint.targetAudience}\n` +
+        `Categories: ${blueprint.productCategories.join(', ')}\n\n` +
+        `Generate 6 realistic products for this store.`,
+    },
+  ])
+
+  let rawProducts: GeneratedProduct[]
+  try {
+    rawProducts = JSON.parse(cleanJSON(llmResult.content))
+    if (!Array.isArray(rawProducts) || rawProducts.length === 0) {
+      return FAILED(llmResult.provider, 'LLM returned empty or non-array product list')
+    }
+  } catch {
+    return FAILED(
+      llmResult.provider,
+      'Failed to parse product JSON: ' + cleanJSON(llmResult.content).slice(0, 200),
+    )
+  }
+
+  // 2. Generate images — fal.ai first, Pollinations as fallback per product
+  console.log(`[ProductAgent] Generating images for ${rawProducts.length} products...`)
+
+  let falSucceeded = 0
+  let pollinationsFallback = 0
+
+  // Run all 6 in parallel for speed
+  const productsWithImages = await Promise.all(
+    rawProducts.map(async (product, i) => {
+      console.log(`[ProductAgent] Image ${i + 1}/${rawProducts.length} — trying fal.ai...`)
+
+      // Try fal.ai first
+      const falUrl = await generateImageWithFal(
+        product.name,
+        product.description,
+        blueprint.businessType,
+      )
+
+      let imageUrl: string
+      if (falUrl) {
+        imageUrl = falUrl
+        falSucceeded++
+        console.log(`[ProductAgent] ✓ fal.ai image for "${product.name}"`)
+      } else {
+        // Fallback to Pollinations
+        imageUrl = buildPollinationsUrl(
+          product.name,
+          product.description,
+          blueprint.businessType,
+        )
+        pollinationsFallback++
+        console.log(`[ProductAgent] ↳ Pollinations fallback for "${product.name}"`)
+      }
+
+      return {
+        ...product,
+        price:
+          typeof product.price === 'string'
+            ? parseFloat(product.price)
+            : product.price,
+        images: [{ url: imageUrl, isPrimary: true }],
+      }
+    })
+  )
+
+  console.log(
+    `[ProductAgent] Done — ` +
+    `${falSucceeded} fal.ai | ${pollinationsFallback} Pollinations fallback`
+  )
+
+  return {
+    success: true,
+    products: productsWithImages,
+    provider: llmResult.provider,
+    imageStats: {
+      total: rawProducts.length,
+      generated: falSucceeded,
+      failed: pollinationsFallback,
+    },
+    error: null,
+  }
+}

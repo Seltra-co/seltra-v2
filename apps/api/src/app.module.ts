@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
 import { AgentModule } from './agent/agent.module'
+import { TenantModule } from './tenant/tenant.module';
 
 @Module({
   imports: [
@@ -11,6 +12,7 @@ import { AgentModule } from './agent/agent.module'
       envFilePath: '.env'
     }),
     AgentModule,
+    TenantModule,
   ],
   controllers: [AppController],
   providers: [AppService],

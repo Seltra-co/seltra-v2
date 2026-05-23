@@ -1,13 +1,22 @@
 import { chat } from '../client'
+import type { CanonicalStore } from '@seltra/types'
+
+//Core agent workflow (seltra blueprint agent):
+//1. User provides a prompt describing their business idea.
+//2. The agent uses a carefully crafted system prompt to instruct the AI to generate a detailed store blueprint in JSON format.
+//3. The agent parses the AI's response, enforcing non-negotiable requirements (like always using "Seltra" as the platform) and filling in any missing information with smart defaults.
+//4. The final blueprint is returned to the user, ready to be used for store creation.
+
+
 
 const SYSTEM_PROMPT = `You are Seltra's Store Builder AI.
 Given a user description of a business, design a comprehensive store blueprint.
 
 Rules:
-1. Always set platform to "Seltra" — never suggest Shopify, WooCommerce, or any other platform.
+1. Always set platform to "Seltra". Never suggest Shopify, WooCommerce, or any other platform.
 2. Return ONLY valid JSON. No markdown, no explanation, no code blocks.
-3. Use Paystack as the default payment gateway for African stores. Add others where relevant.
-4. Fill missing information with smart, context-aware defaults.
+3. Use Paystack as the default payment gateway for African stores.
+4. Fill missing information with smart context-aware defaults.
 5. The JSON must follow this exact structure:
 
 {
@@ -31,8 +40,8 @@ Rules:
     "logistics": ["string"],
     "growthStrategy": ["string"]
   },
-  "storeSlug": "string (url-friendly lowercase hyphenated version of businessName)",
-  "estimatedLaunchTime": "string (e.g. '15 minutes')"
+  "storeSlug": "url-friendly-lowercase-hyphenated-business-name",
+  "estimatedLaunchTime": "15 minutes"
 }`
 
 function cleanJSON(raw: string): string {
@@ -43,19 +52,25 @@ function cleanJSON(raw: string): string {
   return cleaned.trim()
 }
 
-function generateSlug(businessName: string): string {
-  return businessName
+function generateSlug(name: string): string {
+  return name
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '')
 }
 
-export async function generateBlueprint(userPrompt: string) {
+export async function generateBlueprint(userPrompt: string): Promise<{
+  success: boolean
+  prompt: string
+  data: CanonicalStore | null
+  provider: string
+  error: string | null
+}> {
   const result = await chat([
     {
       role: 'user',
-      content: `${SYSTEM_PROMPT}\n\nUser prompt:\n${userPrompt}`
-    }
+      content: `${SYSTEM_PROMPT}\n\nUser prompt:\n${userPrompt}`,
+    },
   ])
 
   const cleaned = cleanJSON(result.content)
@@ -63,14 +78,13 @@ export async function generateBlueprint(userPrompt: string) {
   try {
     const parsed = JSON.parse(cleaned)
 
-    // Enforce non-negotiables regardless of what the model returns
+    // Enforce non-negotiables
     parsed.platform = 'Seltra'
     parsed.recommendedTechStack.frontend = 'Next.js with TailwindCSS'
     parsed.recommendedTechStack.backend = 'Node.js with NestJS'
     parsed.recommendedTechStack.database = 'PostgreSQL'
     parsed.estimatedLaunchTime = parsed.estimatedLaunchTime ?? '15 minutes'
 
-    // Auto-generate slug if model didn't return one
     if (!parsed.storeSlug && parsed.businessName) {
       parsed.storeSlug = generateSlug(parsed.businessName)
     }
@@ -78,9 +92,9 @@ export async function generateBlueprint(userPrompt: string) {
     return {
       success: true,
       prompt: userPrompt,
-      data: parsed,
+      data: parsed as CanonicalStore,
       provider: result.provider,
-      error: null
+      error: null,
     }
   } catch {
     return {
@@ -88,7 +102,7 @@ export async function generateBlueprint(userPrompt: string) {
       prompt: userPrompt,
       data: null,
       provider: result.provider,
-      error: 'Failed to parse AI output — raw: ' + cleaned.slice(0, 200)
+      error: 'Failed to parse AI output: ' + cleaned.slice(0, 200),
     }
   }
 }

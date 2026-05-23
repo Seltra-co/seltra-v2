@@ -8,49 +8,104 @@ datasource db {
 }
 
 model Tenant {
-  id          String    @id @default(uuid())
-  name        String
-  slug        String    @unique
+  id             String    @id @default(uuid())
+  name           String
+  slug           String    @unique
+  businessType   String?
+  targetAudience String?
+  platform       String    @default("Seltra")
+  status         String    @default("active")
+  canonical      Json
+  storeUrl       String?
 
-  products    Product[]
+  products         Product[]
+  categories       Category[]
+  paymentProviders PaymentProvider[]
+  shippingZones    ShippingZone[]
+  orders           Order[]
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Category {
+  id       String @id @default(uuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name     String
+
+  @@unique([tenantId, name])
 }
 
 model Product {
-  id          String    @id @default(uuid())
-
+  id          String  @id @default(uuid())
   tenantId    String
-  tenant      Tenant    @relation(fields: [tenantId], references: [id])
-
+  tenant      Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   name        String
   description String?
+  price       Decimal @db.Decimal(10, 2)
+  currency    String  @default("GHS")
+  category    String?
+  sku         String?
+  tags        Json?
+  status      String  @default("active")
 
-  price       Decimal   @db.Decimal(10,2)
+  images   ProductImage[]
+  variants ProductVariant[]
 
-  images      ProductImage[]
-  variants    ProductVariant[]
-
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model ProductImage {
-  id          String @id @default(uuid())
-
-  productId   String
-  product     Product @relation(fields:[productId], references:[id])
-
-  url         String
+  id        String  @id @default(uuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  url       String
+  isPrimary Boolean @default(false)
 }
 
 model ProductVariant {
-  id          String @id @default(uuid())
+  id        String  @id @default(uuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  name      String
+  value     String
+}
 
-  productId   String
-  product     Product @relation(fields:[productId], references:[id])
+model PaymentProvider {
+  id       String @id @default(uuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  provider String
+  config   Json?
 
-  name        String
-  value       String
+  @@unique([tenantId, provider])
+}
+
+model ShippingZone {
+  id           String  @id @default(uuid())
+  tenantId     String
+  tenant       Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name         String
+  deliveryTime String?
+  fee          String?
+  metadata     Json?
+
+  @@unique([tenantId, name])
+}
+
+model Order {
+  id              String   @id @default(uuid())
+  tenantId        String
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customerEmail   String
+  customerName    String?
+  totalAmount     Decimal  @db.Decimal(10, 2)
+  currency        String   @default("GHS")
+  status          String   @default("pending")
+  paystackRef     String?
+  items           Json
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }

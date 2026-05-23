@@ -1,0 +1,9 @@
+/* apps/storefront/app/globals.css */
+@import "tailwindcss";
+
+:root {
+  --green: #00A86B;
+}
+
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }

@@ -1,3 +1,0 @@
-NEXTJS Frontend directory for seltra
-
-//run this later: npx create-next-app@latest apps/web --typescript --tailwind --eslint --app --src-dir --import-alias "@/*"

@@ -1,4 +1,4 @@
-import { Controller, Post, Body, HttpCode } from '@nestjs/common'
+import { Controller, Post, Body, HttpCode, Get } from '@nestjs/common'
 import { AgentService } from './agent.service'
 
 class BuildStoreDto {
@@ -11,7 +11,7 @@ export class AgentController {
 
   @Post('build')
   @HttpCode(200)
-  async buildStore(@Body() body: BuildStoreDto) {
+  buildStore(@Body() body: BuildStoreDto) {
     return this.agentService.buildStore(body.prompt)
   }
 }
