@@ -1,0 +1,26 @@
+-------------6–8 Week Execution Plan
+Weeks 1–2
+Core Commerce Engine
+rewrite backend in NestJS,
+create shared types,
+product schema,
+tenant product APIs.
+
+Weeks 3–4
+Storefront Operations
+cart system,
+checkout,
+Paystack integration,
+order persistence.
+
+Weeks 5–6
+AI Product Pipeline
+fal.ai integration,
+product generation,
+AI-generated storefront content.
+
+Weeks 7–8
+Deployment Layer
+wildcard subdomains,
+Vercel automation,
+live deployment pipeline.

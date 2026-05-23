@@ -1,0 +1,20 @@
+/agent.graph
+ 
+*Intent Parser - parse user prompt
+*Product Generator - build catalog
+*Brand Engine - design name + palette + logo
+*Image Generator - render product shots
+*Payment Setup - wire Paystack (test mode)
+*Storefront Deploy - ship to edge
+*Live Store - yourstore.seltra.store
+
+
+/agent.build
+runtime: Grog API(primary AI for dev mode), Ollama qwen2.5:3b(Offline fallback when internet is slow), Claude (anthropic)
+name: seltra-agent
+model: sonnet
+
+
+/agent.actions
+-permissions: auth, email, github etc
+-run agent: run, brainstorm, skills, best-path, secrets generated and injected, ready, go, live
