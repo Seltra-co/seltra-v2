@@ -1,159 +1,344 @@
-# Turborepo starter
+# Seltra v2
 
-This Turborepo starter is maintained by the Turborepo core team.
+AI-native commerce infrastructure for autonomous storefront generation and operations.
 
-## Using this example
+Seltra enables entrepreneurs to launch and operate functional ecommerce stores from a single prompt. The platform uses AI agents to generate storefronts, products, product content, branding assets, and operational commerce workflows — all backed by a multi-tenant TypeScript monorepo architecture.
 
-Run the following command:
+---
 
-```sh
-npx create-turbo@latest
+## Vision
+
+Seltra is building the operating system for AI-native commerce.
+
+Instead of spending weeks configuring ecommerce infrastructure, a user simply describes their business idea:
+
+> “Create a premium skincare brand for African millennials.”
+
+Seltra generates:
+
+* A live storefront
+* Product catalog
+* Product descriptions
+* AI-generated product images
+* Checkout flow
+* Tenant deployment
+* Operational commerce data structures
+
+All within minutes.
+
+---
+
+# Core Product Thesis
+
+Traditional ecommerce platforms are dashboard-first.
+
+Seltra is agent-first.
+
+The AI agent becomes the commerce operator:
+
+* generating stores,
+* managing products,
+* orchestrating storefront logic,
+* and eventually automating operations.
+
+---
+
+# Tech Stack
+
+## Frontend
+
+* Next.js 15
+* TypeScript
+* TailwindCSS
+* App Router
+* Multi-tenant storefront rendering
+
+## Backend
+
+* NestJS
+* TypeScript
+* REST APIs
+* AI orchestration modules
+
+## Database
+
+* PostgreSQL
+* Prisma ORM
+* JSONB canonical commerce schemas
+
+## AI Layer
+
+* Claude SDK
+* Structured agent orchestration
+* Commerce blueprint generation
+
+## Infrastructure
+
+* Vercel
+* Wildcard subdomain routing
+* Cloudflare R2
+* fal.ai image generation
+
+## Payments
+
+* Paystack (initial)
+* Stripe (future)
+
+---
+
+
+# Current MVP Status
+
+## Working
+
+* AI commerce blueprint generation
+* Multi-tenant schema architecture
+* PostgreSQL canonical storage
+* Slug-based storefront rendering
+* Next.js storefront retrieval
+* NestJS backend foundation
+* Shared TypeScript architecture
+
+## In Progress
+
+* Product ingestion APIs
+* AI product image generation
+* Cart + checkout system
+* Paystack integration
+* Wildcard subdomain deployment
+* Store operations agents
+
+---
+
+# Product Workflow
+
+```text
+User Prompt
+    ↓
+Claude Commerce Agent
+    ↓
+Business Blueprint Generation
+    ↓
+Canonical Commerce Schema
+    ↓
+PostgreSQL Persistence
+    ↓
+AI Product Asset Generation
+    ↓
+Storefront Rendering
+    ↓
+Live Tenant Deployment
 ```
 
-## What's inside?
+---
 
-This Turborepo includes the following packages/apps:
+# Example User Prompt
 
-### Apps and Packages
-
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo build
+```text
+Create a luxury streetwear brand for Gen Z creatives in Accra.
 ```
 
-Without global `turbo`, use your package manager:
+Seltra generates:
 
-```sh
-cd my-turborepo
-npx turbo build
-npm dlx turbo build
-npm exec turbo build
+* brand identity,
+* product catalog,
+* descriptions,
+* pricing structure,
+* storefront,
+* checkout flow,
+* deployed store URL.
+
+---
+
+# Multi-Tenant Architecture
+
+Each tenant receives:
+
+```text
+brandname.seltra.store
 ```
 
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+Routing is powered by:
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
+* Vercel wildcard domains
+* Next.js middleware
+* tenant slug resolution
+* Postgres tenant isolation
 
-```sh
-turbo build --filter=docs
+---
+
+# Local Development
+
+## Prerequisites
+
+* Node.js 20+
+* PostgreSQL
+* pnpm
+* Prisma
+
+---
+
+# Install Dependencies
+
+```bash
+pnpm install
 ```
 
-Without global `turbo`:
+---
 
-```sh
-npx turbo build --filter=docs
-npm exec turbo build --filter=docs
-npm exec turbo build --filter=docs
+# Configure Environment Variables
+
+Create:
+
+```bash
+apps/api/.env
+apps/web/.env.local
 ```
 
-### Develop
+Example:
 
-To develop all apps and packages, run the following command:
+```env
+DATABASE_URL=postgresql://postgres:password@localhost:5432/seltra_dev
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
+ANTHROPIC_API_KEY=
 
-```sh
-cd my-turborepo
-turbo dev
+NEXT_PUBLIC_API_URL=http://localhost:8000
+
+PAYSTACK_SECRET_KEY=
+PAYSTACK_PUBLIC_KEY=
+
+FAL_KEY=
 ```
 
-Without global `turbo`, use your package manager:
+---
 
-```sh
-cd my-turborepo
-npx turbo dev
-npm exec turbo dev
-npm exec turbo dev
+# Prisma Setup
+
+Generate Prisma client:
+
+```bash
+npx prisma generate
 ```
 
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+Run migrations:
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo dev --filter=web
+```bash
+npx prisma migrate dev
 ```
 
-Without global `turbo`:
+Open Prisma Studio:
 
-```sh
-npx turbo dev --filter=web
-npm exec turbo dev --filter=web
-npm exec turbo dev --filter=web
+```bash
+npx prisma studio
 ```
 
-### Remote Caching
+---
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
+# Run Development Servers
 
-Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
+## API
 
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo login
+```bash
+cd apps/api
+pnpm start:dev
 ```
 
-Without global `turbo`, use your package manager:
+Runs on:
 
-```sh
-cd my-turborepo
-npx turbo login
-npm exec turbo login
-npm exec turbo login
+```text
+http://localhost:8000
 ```
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
+---
 
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
+## Frontend
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo link
+```bash
+cd apps/web
+pnpm dev
 ```
 
-Without global `turbo`:
+Runs on:
 
-```sh
-npx turbo link
-npm exec turbo link
-npm exec turbo link
+```text
+http://localhost:3000
 ```
 
-## Useful Links
+---
 
-Learn more about the power of Turborepo:
+# Example Store Endpoint
 
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
+```bash
+GET /api/v1/store/:slug
+```
+
+Example:
+
+```bash
+http://localhost:8000/api/v1/store/pixelforge-studios
+```
+
+---
+
+# Development Roadmap
+
+## Phase 1 — Core Commerce Engine
+
+* [x] NestJS migration
+* [x] Shared TypeScript architecture
+* [x] Prisma integration
+* [ ] Product ingestion APIs
+* [ ] Tenant commerce schemas
+
+## Phase 2 — Storefront Generation
+
+* [ ] Dynamic storefront rendering
+* [ ] AI-generated products
+* [ ] AI-generated images
+* [ ] Store themes
+
+## Phase 3 — Checkout Infrastructure
+
+* [ ] Cart system
+* [ ] Paystack checkout
+* [ ] Orders
+* [ ] Webhooks
+
+## Phase 4 — Operations Agents
+
+* [ ] Inventory monitoring
+* [ ] AI pricing optimization
+* [ ] Product recommendations
+* [ ] Commerce analytics
+
+---
+
+# Core Philosophy
+
+Most ecommerce platforms help users build stores.
+
+Seltra helps users operate commerce through AI agents.
+
+---
+
+# Long-Term Vision
+
+Seltra aims to become:
+
+* the AI-native commerce operating system,
+* the autonomous commerce layer for entrepreneurs,
+* and eventually the infrastructure powering agentic ecommerce.
+
+---
+
+# Founder
+William Ofosu Parwar
+
+Built in Ghana 🇬🇭
+Designed for global commerce.
+
+---
+
+# License
+
+Private — All rights reserved.
