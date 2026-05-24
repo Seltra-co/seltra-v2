@@ -1,3 +1,4 @@
+//app/storefront/app/store/[slug]/StorefrontClient.tsx
 'use client'
 
 import { useState } from 'react'

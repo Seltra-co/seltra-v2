@@ -1,3 +1,4 @@
+//packages/ai/src/agents/blueprint.agent.ts
 import { chat } from '../client'
 import type { CanonicalStore } from '@seltra/types'
 

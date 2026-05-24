@@ -1,43 +1,14 @@
-//apps/storefront/app/store/[slug]/page.tsx
+// apps/storefront/app/store/[slug]/page.tsx
 import { notFound } from 'next/navigation'
-import StorefrontClient from './StorefrontClient'
+import type { StoreData } from './types'
+import EditorialLayout from './layouts/EditorialLayout'
+import GridLayout from './layouts/GridLayout'
+import BoldLayout from './layouts/BoldLayout'
 
-interface Product {
-  id: string
-  name: string
-  description: string
-  price: string
-  currency: string
-  category: string
-  sku: string
-  tags: string[]
-  status: string
-  images: Array<{ url: string; isPrimary: boolean }>
-  variants: Array<{ name: string; value: string }>
-}
-
-interface StoreData {
-  id: string
-  name: string
-  slug: string
-  businessType: string
-  targetAudience: string
-  storeUrl: string
-  canonical: {
-    storeFeatures: string[]
-    productCategories: string[]
-    additionalRecommendations: {
-      marketing: string[]
-      logistics: string[]
-    }
-    recommendedTechStack: {
-      paymentGateways: string[]
-      shippingIntegration: string
-    }
-  }
-  products: Product[]
-  categories: Array<{ id: string; name: string }>
-  paymentProviders: Array<{ provider: string }>
+const LAYOUTS = {
+  editorial: EditorialLayout,
+  grid: GridLayout,
+  bold: BoldLayout,
 }
 
 async function getStore(slug: string): Promise<StoreData | null> {
@@ -62,5 +33,10 @@ export default async function StorePage({
   const { slug } = await params
   const store = await getStore(slug)
   if (!store) notFound()
-  return <StorefrontClient store={store} />
+
+  // Pick layout based on what the classifier stored, default to grid
+  const variant = (store.layoutVariant as keyof typeof LAYOUTS) || 'grid'
+  const Layout = LAYOUTS[variant] || GridLayout
+
+  return <Layout store={store} />
 }

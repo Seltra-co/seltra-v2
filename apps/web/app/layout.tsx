@@ -1,10 +1,11 @@
 //apps/web/app/layout.tsx
 import type { Metadata } from 'next'
+
 import './globals.css'
 
 export const metadata: Metadata = {
   title: 'Seltra — Commerce that runs itself',
-  description: 'AI agent that launches and operates a fully functional ecommerce store from one prompt.',
+  description: 'Launch a full storefront today — our specialized agents handle operations, marketing, payments, and fulfillment',
 }
 
 export default function RootLayout({

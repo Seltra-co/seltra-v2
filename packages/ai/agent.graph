@@ -1,4 +1,5 @@
-/agent.graph
+//agent.graph
+/agent.graph (update graph since we are introducing the layout classifier)
  
 *Intent Parser - parse user prompt
 *Product Generator - build catalog

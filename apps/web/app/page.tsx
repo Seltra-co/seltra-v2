@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Send, Store, Zap, CheckCircle, Circle, Loader } from 'lucide-react'
 
 const EXAMPLES = [
-  'Launch a skincare brand for Gen Z women in Accra',
+  'Launch a skincare brand for Gen Z women in San Francisco',
   'Build a digital art marketplace with Paystack',
   'Create a fashion store for Ghanaian streetwear',
   'Start a handmade jewelry shop with local delivery',
@@ -62,7 +62,7 @@ export default function HomePage() {
     const lines = [
       '> Analyzing business intent...',
       '> Generating commerce blueprint...',
-      '> Creating 6 products with variants...',
+      '> Creating products with descriptions...',
       '> Seeding PostgreSQL database...',
       '> Scaffolding storefront...',
       '> Store deployed successfully ✓',
@@ -117,7 +117,7 @@ export default function HomePage() {
           <div className="w-8 h-8 rounded-lg bg-[#00A86B] flex items-center justify-center">
             <Store size={16} className="text-black" />
           </div>
-          <span className="font-bold text-white text-lg tracking-tight">Seltra</span>
+          <span className="font-bold text-white text-lg tracking-tight">seltra</span>
         </div>
         <div className="flex items-center gap-4">
           <span className="text-xs text-[#6b7280] border border-[#1f1f1f] px-3 py-1 rounded-full">
@@ -142,19 +142,18 @@ export default function HomePage() {
           <div className="inline-flex items-center gap-2 bg-[#00A86B15] border border-[#00A86B33] rounded-full px-4 py-1.5 mb-6">
             <Zap size={12} className="text-[#00A86B]" />
             <span className="text-xs text-[#00A86B] font-medium">
-              AI-native commerce agent · Built in Ghana
+              AI-native commerce stack
             </span>
           </div>
 
           <h1 className="text-5xl md:text-6xl font-bold text-white mb-4 leading-tight">
             Describe your store.
             <br />
-            <span className="text-[#00A86B]">We build and run it.</span>
+            <span className="text-[#00A86B]">Seltra builds and runs it.</span>
           </h1>
 
           <p className="text-[#6b7280] text-lg max-w-xl mx-auto">
-            One prompt. Full ecommerce store — products, payments, storefront.
-            Live in minutes.
+        Launch a full storefront today — our agents handle operations, marketing, payments, and fulfillment
           </p>
         </motion.div>
 
@@ -175,7 +174,7 @@ export default function HomePage() {
                   handleBuild()
                 }
               }}
-              placeholder="e.g. Launch a skincare brand for Gen Z women in Accra..."
+              placeholder="e.g. Launch a skincare brand for Gen Z women in San Francisco..."
               className="w-full bg-transparent text-white placeholder-[#374151] px-5 py-4 pr-16 resize-none outline-none text-sm leading-relaxed"
               rows={2}
               disabled={loading}

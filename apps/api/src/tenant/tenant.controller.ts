@@ -1,3 +1,4 @@
+//apps/api/src/tenant/tenant.controller.ts
 import { Controller, Get, Param } from '@nestjs/common'
 import { TenantService } from './tenant.service'
 

@@ -1,0 +1,597 @@
+//docs/actions.txt
+Solutions for next actions:
+-  Image Generation — Zero Budget Fix:
+Use Unsplash Source API. No key, no billing, no signup. Make sure you use the right API or URL for the call so it does not fail
+https://source.unsplash.com/400x400/?skincare,women
+https://source.unsplash.com/400x400/?streetwear,clothing
+https://source.unsplash.com/400x400/?jewelry,handmade
+The trick is — you pass keywords from the user's prompt directly into the URL. So when someone says "skincare brand for Gen Z women in Accra" you extract skincare, women, beauty and the images are always relevant, always high quality, always free, no rate limit that matters at MVP scale.
+Implementation:
+jsfunction getProductImage(productName, storeCategory) {
+  const keywords = extractKeywords(productName, storeCategory)
+  return `https://source.unsplash.com/400x400/?${keywords.join(',')}`
+}
+
+No fal.ai, no pollinations, no picsum randomness. Relevant images from day one. Ship it.
+
+-  Dynamic Stores — The Real Fix
+The problem isn't Next.js. It's that you're using a fixed template with fixed slots. Lovable works because every prompt produces genuinely different component trees.
+What to do:
+Stop thinking "template + data." Start thinking "prompt → layout config → render."
+Your AI call should return not just products but a store schema:
+{
+  "layout": "editorial",
+  "colorScheme": "warm-minimal",
+  "heroStyle": "full-bleed",
+  "sections": ["hero", "featured", "grid-6", "testimonial"],
+  "productCount": 6,
+  "typography": "serif-led",
+  "products": [...]
+}
+
+Then you have 3–4 layout variants that render differently based on that schema. A jewelry boutique gets serif fonts, warm tones, editorial layout. A streetwear store gets bold type, dark theme, grid layout. Same codebase, genuinely different stores.
+That's the dynamic feel without rebuilding everything. Claude picks the schema, your components render it.
+
+-   Payments — The Smart Staging Strategy
+This is the most important one. Here's the path that lets you launch today AND scale to full merchant accounts later.
+Stage 1 — Launch now (this immediately):
+Set up one Paystack account — yours. Every store on Seltra processes through it in test mode. Buyers see a checkout, experience the full flow, orders are recorded. No merchant verification needed. You're the merchant of record.
+User's store → Seltra's Paystack → Order confirmed → Email receipt
+This is exactly how Gumroad, Selar, and Paystack Commerce started. One account, everyone sells through it.
+
+Stage 2 — After first 10 merchants (weeks away):
+Introduce Paystack Split or Paystack SubAccounts. Each merchant gets a subaccount under your master. You collect a platform fee (say 2%), they get the rest. No new merchant KYC needed from your side — Paystack handles compliance per subaccount.
+// When merchant onboards
+const subaccount = await paystack.createSubaccount({
+  business_name: merchant.storeName,
+  bank_code: merchant.bankCode,
+  account_number: merchant.accountNumber,
+  percentage_charge: 2 // Seltra's cut
+})
+
+Stage 3 — Full merchant accounts (post-YC / post-revenue):
+Business document verification, custom domains, full white-label. This is a month 4–6 problem, not a launch problem.
+
+
+The Launch Sequence
+Now -  Unsplash keyword images + one Paystack test account + 3 layout variants
+Now - Live Paystack, first real transactions through Seltra's account
+Later - Paystack SubAccounts, merchants get their own splits
+Later- Full merchant KYC, Stripe, fulfillment partners
+
+We don't need to solve the whole pipeline to launch. We need to solve enough that the first merchant can describe their store, see it, and buy from it. Everything else is sequenced.
+
+We're working with the canonical data structure already being stored in Postgres. The transformation is clean from here
+The Architecture:
+User Prompt
+    ↓
+Groq (primary) / Ollama Qwen (fallback)
+    ↓
+Canonical Store Data (already in Postgres)
+    ↓
+NEW: Layout Classifier Agent         ←  we add this now as new agent (layout-classifier.agent.ts)
+    ↓
+One of 3 Layout Variants
+    ↓
+Next.js renders it dynamically
+
+Step 1 — Add a Layout Classifier to the Canonical:
+Canonical example:
+localhost:8000/api/v1/seltra/store/beautysmith
+{
+    "success": true,
+    "message": "Store \"BeautySmith\" found",
+    "data": {
+        "id": "a9f13450-de8d-4113-9136-7fe98a62140a",
+        "name": "BeautySmith",
+        "slug": "beautysmith",
+        "businessType": "Ecommerce Cosmetics Store",
+        "targetAudience": "Women and Men aged 18-50 interested in beauty and cosmetics",
+        "platform": "Seltra",
+        "status": "active",
+        "canonical": {
+            "platform": "Seltra",
+            "storeSlug": "beautysmith",
+            "businessName": "BeautySmith",
+            "businessType": "Ecommerce Cosmetics Store",
+            "storeFeatures": [
+                "Product Filtering and Sorting",
+                "Search Functionality",
+                "Product Reviews and Ratings",
+                "Wishlist and Cart Functionality",
+                "Secure Checkout and Payment Processing"
+            ],
+            "targetAudience": "Women and Men aged 18-50 interested in beauty and cosmetics",
+            "productCategories": [
+                "Body Creams",
+                "Hair Products",
+                "Lip Gloss",
+                "Makeup",
+                "Fragrances"
+            ],
+            "estimatedLaunchTime": "30 minutes",
+            "recommendedTechStack": {
+                "backend": "Node.js with NestJS",
+                "database": "PostgreSQL",
+                "frontend": "Next.js with TailwindCSS",
+                "analytics": "Google Analytics",
+                "paymentGateways": [
+                    "Paystack",
+                    "Mobile Money"
+                ],
+                "shippingIntegration": "Seltra Shipping API"
+            },
+            "additionalRecommendations": {
+                "logistics": [
+                    "Local Pickup Option",
+                    "Nationwide Courier Shipping",
+                    "Tracking and Insurance Options"
+                ],
+                "marketing": [
+                    "Influencer Marketing",
+                    "Social Media Advertising",
+                    "Email Marketing",
+                    "Content Marketing"
+                ],
+                "growthStrategy": [
+                    "Regular Product Launches",
+                    "Collaborations with Beauty Influencers",
+                    "Optimizing Product Pages for SEO"
+                ],
+                "customerService": [
+                    "24/7 Live Chat Support",
+                    "Email Support",
+                    "Phone Support"
+                ]
+            }
+        },
+        "storeUrl": "beautysmith.seltra.store",
+        "createdAt": "2026-05-23T17:38:53.602Z",
+        "updatedAt": "2026-05-23T17:38:53.602Z",
+        "products": [
+            {
+                "id": "6853f5ce-be38-429b-8c55-372a51d0b89c",
+                "tenantId": "a9f13450-de8d-4113-9136-7fe98a62140a",
+                "name": "Glowing Goddess Body Cream",
+                "description": "Indulge in the rich, luxurious formula of our Glowing Goddess Body Cream. Enriched with shea butter and coconut oil, this nourishing body cream leaves your skin feeling soft, smooth, and hydrated all day long. Perfect for everyday use.",
+                "price": "25",
+                "currency": "GHS",
+                "category": "Body Creams",
+                "sku": "BC-001",
+                "tags": [
+                    "Body Cream",
+                    "Moisturizing"
+                ],
+                "status": "active",
+                "createdAt": "2026-05-23T17:38:53.602Z",
+                "updatedAt": "2026-05-23T17:38:53.602Z",
+                "images": [
+                    {
+                        "id": "6b7a9d14-53f5-4932-b84f-5ead53e1f331",
+                        "productId": "6853f5ce-be38-429b-8c55-372a51d0b89c",
+                        "url": "https://picsum.photos/seed/2422/512/512",
+                        "isPrimary": true
+                    }
+                ],
+                "variants": [
+                    {
+                        "id": "0f7a8da9-a07e-4044-b147-3adea6618e42",
+                        "productId": "6853f5ce-be38-429b-8c55-372a51d0b89c",
+                        "name": "Size",
+                        "value": "Small"
+                    },
+                    {
+                        "id": "c22b793c-20b3-4ee7-a181-3d210e5df879",
+                        "productId": "6853f5ce-be38-429b-8c55-372a51d0b89c",
+                        "name": "Size",
+                        "value": "Medium"
+                    },
+                    {
+                        "id": "4c20788c-095c-4309-af5b-c6b900966360",
+                        "productId": "6853f5ce-be38-429b-8c55-372a51d0b89c",
+                        "name": "Size",
+                        "value": "Large"
+                    }
+                ]
+            },
+            {
+                "id": "8e730326-abd1-4529-a73c-fc1540695630",
+                "tenantId": "a9f13450-de8d-4113-9136-7fe98a62140a",
+                "name": "Tropical Temptation Hair Serum",
+                "description": "Add a touch of tropical paradise to your locks with our Tropical Temptation Hair Serum. Infused with argan oil and keratin, this serum smooths, nourishes, and protects your hair from heat damage and frizz. Perfect for all hair types.",
+                "price": "18",
+                "currency": "GHS",
+                "category": "Hair Products",
+                "sku": "HP-002",
+                "tags": [
+                    "Hair Serum",
+                    "Hair Care"
+                ],
+                "status": "active",
+                "createdAt": "2026-05-23T17:38:53.602Z",
+                "updatedAt": "2026-05-23T17:38:53.602Z",
+                "images": [
+                    {
+                        "id": "c9ad5ff5-3452-44bb-8ccc-c38ac688240d",
+                        "productId": "8e730326-abd1-4529-a73c-fc1540695630",
+                        "url": "https://picsum.photos/seed/2899/512/512",
+                        "isPrimary": true
+                    }
+                ],
+                "variants": [
+                    {
+                        "id": "e95b5ebd-24b8-4b8b-8516-b1077d7e93bc",
+                        "productId": "8e730326-abd1-4529-a73c-fc1540695630",
+                        "name": "Size",
+                        "value": "Small"
+                    },
+                    {
+                        "id": "3264796c-fe38-412d-92bd-3cb29e3f2db5",
+                        "productId": "8e730326-abd1-4529-a73c-fc1540695630",
+                        "name": "Size",
+                        "value": "Medium"
+                    },
+                    {
+                        "id": "11d99d75-7008-4691-a766-d81dc32336f3",
+                        "productId": "8e730326-abd1-4529-a73c-fc1540695630",
+                        "name": "Size",
+                        "value": "Large"
+                    }
+                ]
+            },
+            {
+                "id": "ede98133-1103-4651-bc09-2cb2803d4ce5",
+                "tenantId": "a9f13450-de8d-4113-9136-7fe98a62140a",
+                "name": "Ruby Red Lip Gloss",
+                "description": "Make a statement with our Ruby Red Lip Gloss. Enriched with vitamin E and a hint of cherry flavor, this lip gloss provides long-lasting moisture and a bold, vibrant color. Perfect for a night out or everyday wear.",
+                "price": "12.5",
+                "currency": "GHS",
+                "category": "Lip Gloss",
+                "sku": "LG-003",
+                "tags": [
+                    "Lip Gloss",
+                    "Makeup"
+                ],
+                "status": "active",
+                "createdAt": "2026-05-23T17:38:53.602Z",
+                "updatedAt": "2026-05-23T17:38:53.602Z",
+                "images": [
+                    {
+                        "id": "26f2c97e-5155-4941-9792-73ce0f5d2676",
+                        "productId": "ede98133-1103-4651-bc09-2cb2803d4ce5",
+                        "url": "https://picsum.photos/seed/1610/512/512",
+                        "isPrimary": true
+                    }
+                ],
+                "variants": [
+                    {
+                        "id": "faf92f1d-2160-4513-a819-31ee0d90b2a3",
+                        "productId": "ede98133-1103-4651-bc09-2cb2803d4ce5",
+                        "name": "Size",
+                        "value": "Small"
+                    },
+                    {
+                        "id": "42c47e69-b40f-4d9a-9bb1-79386fd78af5",
+                        "productId": "ede98133-1103-4651-bc09-2cb2803d4ce5",
+                        "name": "Size",
+                        "value": "Medium"
+                    },
+                    {
+                        "id": "ff4cf577-1d1c-42d7-985d-ba06b7727fde",
+                        "productId": "ede98133-1103-4651-bc09-2cb2803d4ce5",
+                        "name": "Size",
+                        "value": "Large"
+                    }
+                ]
+            },
+            {
+                "id": "ffe5ae2c-9388-4397-ab06-d12701298b9a",
+                "tenantId": "a9f13450-de8d-4113-9136-7fe98a62140a",
+                "name": "Flawless Finish Foundation",
+                "description": "Achieve a flawless, even finish with our Flawless Finish Foundation. Available in a range of shades to suit all skin tones, this long-lasting foundation provides medium to full coverage and is infused with SPF 20 for added protection.",
+                "price": "30",
+                "currency": "GHS",
+                "category": "Makeup",
+                "sku": "MF-004",
+                "tags": [
+                    "Foundation",
+                    "Makeup"
+                ],
+                "status": "active",
+                "createdAt": "2026-05-23T17:38:53.602Z",
+                "updatedAt": "2026-05-23T17:38:53.602Z",
+                "images": [
+                    {
+                        "id": "d0fb9edf-fbed-48c6-8f3f-b8bb6562d0cd",
+                        "productId": "ffe5ae2c-9388-4397-ab06-d12701298b9a",
+                        "url": "https://picsum.photos/seed/2553/512/512",
+                        "isPrimary": true
+                    }
+                ],
+                "variants": [
+                    {
+                        "id": "eaa0dc80-9a33-48e9-ae58-6ceb31942ebb",
+                        "productId": "ffe5ae2c-9388-4397-ab06-d12701298b9a",
+                        "name": "Size",
+                        "value": "Small"
+                    },
+                    {
+                        "id": "ecb590f6-2915-40b1-9cb8-4f09df73fee4",
+                        "productId": "ffe5ae2c-9388-4397-ab06-d12701298b9a",
+                        "name": "Size",
+                        "value": "Medium"
+                    },
+                    {
+                        "id": "667fa007-34b5-4858-86f8-521ea686b1ed",
+                        "productId": "ffe5ae2c-9388-4397-ab06-d12701298b9a",
+                        "name": "Size",
+                        "value": "Large"
+                    }
+                ]
+            },
+            {
+                "id": "36526971-2497-4e15-ac77-182cbf33fd93",
+                "tenantId": "a9f13450-de8d-4113-9136-7fe98a62140a",
+                "name": "Safari Sunset Fragrance Oil",
+                "description": "Escape to the African savannah with our Safari Sunset Fragrance Oil. Blended with notes of citrus, florals, and woody accords, this scent is perfect for everyday wear or as a gift.",
+                "price": "20",
+                "currency": "GHS",
+                "category": "Fragrances",
+                "sku": "FO-005",
+                "tags": [
+                    "Fragrance",
+                    "Perfume"
+                ],
+                "status": "active",
+                "createdAt": "2026-05-23T17:38:53.602Z",
+                "updatedAt": "2026-05-23T17:38:53.602Z",
+                "images": [
+                    {
+                        "id": "7b77bd8c-976c-401e-b112-dc93c667eb27",
+                        "productId": "36526971-2497-4e15-ac77-182cbf33fd93",
+                        "url": "https://picsum.photos/seed/2533/512/512",
+                        "isPrimary": true
+                    }
+                ],
+                "variants": [
+                    {
+                        "id": "a82b0248-27dc-411b-916b-13644ff03978",
+                        "productId": "36526971-2497-4e15-ac77-182cbf33fd93",
+                        "name": "Size",
+                        "value": "Small"
+                    },
+                    {
+                        "id": "d9e1f664-a0ea-48ee-a9bf-b773d0f5f6f3",
+                        "productId": "36526971-2497-4e15-ac77-182cbf33fd93",
+                        "name": "Size",
+                        "value": "Medium"
+                    },
+                    {
+                        "id": "19b7a304-6ac2-4cbb-bb33-abf5932ae9cd",
+                        "productId": "36526971-2497-4e15-ac77-182cbf33fd93",
+                        "name": "Size",
+                        "value": "Large"
+                    }
+                ]
+            },
+            {
+                "id": "2d28c5fa-a403-4867-8a3f-56a8799815f1",
+                "tenantId": "a9f13450-de8d-4113-9136-7fe98a62140a",
+                "name": "Glowing Gold Highlighter",
+                "description": "Add a touch of glamour to your look with our Glowing Gold Highlighter. Infused with shimmering particles and a hint of vanilla, this highlighter provides a radiant, sun-kissed glow that lasts all day.",
+                "price": "22.5",
+                "currency": "GHS",
+                "category": "Makeup",
+                "sku": "MH-006",
+                "tags": [
+                    "Highlighter",
+                    "Makeup"
+                ],
+                "status": "active",
+                "createdAt": "2026-05-23T17:38:53.602Z",
+                "updatedAt": "2026-05-23T17:38:53.602Z",
+                "images": [
+                    {
+                        "id": "8f4c7ffd-f7b9-416e-a5b7-13b95425c758",
+                        "productId": "2d28c5fa-a403-4867-8a3f-56a8799815f1",
+                        "url": "https://picsum.photos/seed/2316/512/512",
+                        "isPrimary": true
+                    }
+                ],
+                "variants": [
+                    {
+                        "id": "6cb9d097-013b-4177-9ff7-e9d94197a0ea",
+                        "productId": "2d28c5fa-a403-4867-8a3f-56a8799815f1",
+                        "name": "Size",
+                        "value": "Small"
+                    },
+                    {
+                        "id": "50e0baa6-9f31-4d6b-9274-269d3fc9b0f2",
+                        "productId": "2d28c5fa-a403-4867-8a3f-56a8799815f1",
+                        "name": "Size",
+                        "value": "Medium"
+                    },
+                    {
+                        "id": "6912ccc4-15a0-4a27-9bf6-e824bbae9094",
+                        "productId": "2d28c5fa-a403-4867-8a3f-56a8799815f1",
+                        "name": "Size",
+                        "value": "Large"
+                    }
+                ]
+            }
+        ],
+        "categories": [
+            {
+                "id": "d2d87ae4-58f3-40f9-b04e-933f53c0b292",
+                "tenantId": "a9f13450-de8d-4113-9136-7fe98a62140a",
+                "name": "Body Creams"
+            },
+            {
+                "id": "880159af-e7be-485d-b114-2656adbb4051",
+                "tenantId": "a9f13450-de8d-4113-9136-7fe98a62140a",
+                "name": "Hair Products"
+            },
+            {
+                "id": "e3fc822b-d952-4226-a192-92420f76b93e",
+                "tenantId": "a9f13450-de8d-4113-9136-7fe98a62140a",
+                "name": "Lip Gloss"
+            },
+            {
+                "id": "9affae2a-f8b6-4c1a-a51b-d549d92ca054",
+                "tenantId": "a9f13450-de8d-4113-9136-7fe98a62140a",
+                "name": "Makeup"
+            },
+            {
+                "id": "a6f418a6-0167-40be-a246-6d3da8c3a01b",
+                "tenantId": "a9f13450-de8d-4113-9136-7fe98a62140a",
+                "name": "Fragrances"
+            }
+        ],
+        "paymentProviders": [
+            {
+                "id": "b97c2340-25c5-470c-9927-a60afa5dac4a",
+                "tenantId": "a9f13450-de8d-4113-9136-7fe98a62140a",
+                "provider": "Paystack",
+                "config": {}
+            },
+            {
+                "id": "4f3303aa-4af5-451b-985f-cc95653763c0",
+                "tenantId": "a9f13450-de8d-4113-9136-7fe98a62140a",
+                "provider": "Mobile Money",
+                "config": {}
+            }
+        ],
+        "shippingZones": []
+    }
+}
+
+When the store is created and canonical is saved, run one extra Groq call to classify it. Add one field to your Postgres schema:
+sqlALTER TABLE stores ADD COLUMN layout_variant VARCHAR(20) DEFAULT 'grid';
+-- values: 'editorial' | 'grid' | 'bold'
+The classifier prompt is tiny and fast:
+const classifyLayout = async (canonical) => {
+  const prompt = `
+You are a store layout classifier.
+Given this store description, return ONLY one word: editorial, grid, or bold.
+
+Rules:
+- editorial: luxury, handmade, jewelry, art, beauty, skincare, fashion boutique
+- bold: streetwear, sports, tech, gaming, sneakers, urban, men's fashion  
+- grid: general, food, home, gifts, books, kids, multi-category
+
+Store name: ${canonical.store_name}
+Store description: ${canonical.description}
+Category: ${canonical.category}
+Products: ${canonical.products.map(p => p.name).join(', ')}
+
+Reply with one word only.`
+
+  const result = await groq.chat(prompt)
+  return result.trim().toLowerCase() // 'editorial' | 'grid' | 'bold'
+}
+
+Save it to the canonical:
+canonical.layout_variant = await classifyLayout(canonical)
+await db.stores.update({ layout_variant: canonical.layout_variant }, { where: { id: store.id } })
+
+Step 2 — The 3 Variants Defined
+Each variant is a different component composition — same data, different feel.
+
+editorial — Luxury / Boutique:
+"- Full-bleed hero image, store name in serif
+- Products in 2-column asymmetric grid
+- Large product images, minimal text
+- Warm or neutral palette extracted from category
+- Good for: skincare, jewelry, handmade, fashion"
+
+grid — Clean / Marketplace:
+"- Standard hero with tagline + CTA
+- Products in 3-column even grid (or 2 on mobile)
+- Card-based with price prominent
+- Neutral palette, high contrast
+- Good for: general stores, food, gifts, home"
+
+bold — High Energy / Street:
+"- Dark hero, large typography, accent color
+- Products in staggered 2-column with hover effects
+- Price badges, bold product names
+- Dark palette with one strong accent
+- Good for: streetwear, sneakers, sports, tech"
+
+Step 3 — Next.js Rendering
+Your store page reads the variant and switches the component tree:
+// pages/store/[slug].jsx
+
+import EditorialLayout from '@/layouts/EditorialLayout'
+import GridLayout from '@/layouts/GridLayout'
+import BoldLayout from '@/layouts/BoldLayout'
+
+const LAYOUTS = {
+  editorial: EditorialLayout,
+  grid: GridLayout,
+  bold: BoldLayout,
+}
+
+export default function StorePage({ canonical }) {
+  const Layout = LAYOUTS[canonical.layout_variant] || GridLayout
+
+  return <Layout store={canonical} />
+}
+
+export async function getServerSideProps({ params }) {
+  const canonical = await db.stores.findOne({ 
+    where: { slug: params.slug } 
+  })
+  return { props: { canonical } }
+}
+
+
+Step 4 — Unsplash Images from Canonical
+Each product already has a name in the canonical. Use that plus the store category:
+function getProductImage(productName, storeCategory) {
+  const clean = (str) => str.toLowerCase().replace(/[^a-z0-9 ]/g, '').trim()
+  const keywords = [
+    ...clean(productName).split(' ').slice(0, 2),
+    clean(storeCategory).split(' ')[0]
+  ].join(',')
+  
+  return `https://source.unsplash.com/600x600/?${keywords}`
+}
+
+// Usage inside layout component
+canonical.products.map(product => ({
+  ...product,
+  image: getProductImage(product.name, canonical.category)
+}))
+
+
+What Gets Added to the Canonical in Postgres
+{
+  "store_id": "abc123",
+  "store_name": "Luminae Beauty",
+  "slug": "luminae-beauty",
+  "description": "Skincare brand for Gen Z women in Accra",
+  "category": "skincare",
+  "layout_variant": "editorial",      ← new field
+  "color_scheme": "warm-neutral",     ← optional, derive from category
+  "products": [
+    {
+      "name": "Glow Serum",
+      "price": 45.00,
+      "description": "...",
+      "image_keywords": "glow,serum,skincare"  ← new field, built at creation
+    }
+  ]
+}
+
+The Full Flow End to End:
+1. User types: "Launch a skincare brand for Gen Z women in Accra"
+2. Groq generates canonical → saved to Postgres
+3. Classifier runs → layout_variant: "editorial" → saved
+4. Image keywords extracted per product → saved
+5. Store page loads → reads canonical → picks EditorialLayout
+6. Products render with Unsplash keyword images
+7. Paystack checkout wired to your test account
+
+Every store feels different. Zero extra cost. No new dependencies.
+

@@ -1,3 +1,4 @@
+//packages/ai/src/client.ts
 //Groq and Ollama client for chat completions
 //Groq is used if GROQ_API_KEY is set, otherwise falls back to Ollama
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'

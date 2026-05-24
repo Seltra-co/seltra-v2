@@ -1,3 +1,4 @@
+//packages/ai/src/agents/image-generator.ts
 import { fal } from '@fal-ai/client'
 //Image Generator Agent (using Fal.ai's image generation API for free fallbacks when Pollinations.ai hits rate limits)
 

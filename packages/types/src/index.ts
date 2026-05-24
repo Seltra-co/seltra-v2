@@ -1,3 +1,4 @@
+//packages/types/src/index.ts
 export interface CanonicalStore {
   storeId: string
   prompt: string

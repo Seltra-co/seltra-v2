@@ -1,0 +1,23 @@
+//Score board now:
+✅ packages/ai          — TypeScript AI layer
+✅ apps/api             — NestJS running
+✅ Groq                 — AI generating blueprints (Ollama fallback)
+✅ Blueprint agent      — Rich structured output
+✅ Postgres             — Full persistence
+✅ Products agent       — 6 products with Unsplash images  ← updated
+✅ Tenant CRUD          — Create + fetch by slug
+✅ apps/web             — Prompt UI with pipeline animation
+✅ Layout Classifier    — editorial / grid / bold per store  ← NEW
+✅ 3 Layout Variants    — EditorialLayout, GridLayout, BoldLayout  ← NEW
+✅ Dynamic storefronts  — Each store renders its own layout  ← NEW
+✅ Product images       — Unsplash keyword URLs, zero cost  ← NEW
+✅ Cart system          — Add, remove, quantity, drawer
+✅ Checkout flow        — Email + name collect → Paystack inline  ← NEW
+✅ Order persistence    — Orders saved to Postgres on payment  ← NEW
+✅ apps/storefront      — Live store with dynamic layouts
+
+⬜ Paystack webhook     — Server-side event confirmation (hardening)
+⬜ Subdomains           — *.seltra.store routing on Vercel
+⬜ Paystack SubAccounts — Per-merchant splits (Stage 2)
+⬜ Order management UI  — Merchant dashboard for orders
+⬜ Custom domains       — merchant.com → seltra store
