@@ -1,12 +1,10 @@
 const path = require('path')
-const CopyPlugin = require('copy-webpack-plugin')
 
 module.exports = function (options) {
   return {
     ...options,
     entry: options.entry,
     externals: [
-      // Don't bundle @prisma/client — let Node find it at runtime
       ({ request }, callback) => {
         if (request === '@prisma/client' || request?.startsWith('@prisma/')) {
           return callback(null, 'commonjs ' + request)
