@@ -20,7 +20,6 @@ module.exports = function (options) {
       extensions: ['.tsx', '.ts', '.js'],
     },
     module: {
-      ...options.module,
       rules: [
         {
           test: /\.ts$/,
@@ -28,7 +27,6 @@ module.exports = function (options) {
             loader: 'ts-loader',
             options: {
               transpileOnly: true,
-              configFile: path.resolve(__dirname, 'tsconfig.json'),
             },
           },
           exclude: /node_modules/,
