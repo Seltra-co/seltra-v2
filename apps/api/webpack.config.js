@@ -11,7 +11,6 @@ module.exports = function (options) {
       path: path.resolve(__dirname, 'dist'),
     },
     resolve: {
-      ...options.resolve,
       alias: {
         '@seltra/ai': path.resolve(__dirname, '../../packages/ai/src/index.ts'),
         '@seltra/db': path.resolve(__dirname, '../../packages/db/src/index.ts'),
@@ -23,13 +22,26 @@ module.exports = function (options) {
       rules: [
         {
           test: /\.ts$/,
+          exclude: /node_modules/,
           use: {
-            loader: 'ts-loader',
+            loader: 'swc-loader',
             options: {
-              transpileOnly: true,
+              jsc: {
+                parser: {
+                  syntax: 'typescript',
+                  decorators: true,
+                },
+                transform: {
+                  legacyDecorator: true,
+                  decoratorMetadata: true,
+                },
+                target: 'es2021',
+              },
+              module: {
+                type: 'commonjs',
+              },
             },
           },
-          exclude: /node_modules/,
         },
       ],
     },
