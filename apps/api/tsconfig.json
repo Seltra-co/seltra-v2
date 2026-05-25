@@ -1,37 +1,39 @@
 {
   "compilerOptions": {
-    "module": "nodenext",
-    "moduleResolution": "nodenext",
-
-    "types": ["node"],
-
-    "resolvePackageJsonExports": true,
-    "esModuleInterop": true,
-    "isolatedModules": true,
-
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "ignoreDeprecations": "6.0",
     "declaration": true,
     "removeComments": true,
-
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-
     "allowSyntheticDefaultImports": true,
-
-    "target": "ES2023",
-
+    "esModuleInterop": true,
+    "target": "ES2021",
     "sourceMap": true,
-
     "outDir": "./dist",
-    "rootDir": "./src",
-
+    "rootDir": "../../",
+    "baseUrl": ".",
     "incremental": true,
     "skipLibCheck": true,
-
-    "strictNullChecks": true,
-    "forceConsistentCasingInFileNames": true,
-
+    "strictNullChecks": false,
     "noImplicitAny": false,
     "strictBindCallApply": false,
-    "noFallthroughCasesInSwitch": false
-  }
+    "noFallthroughCasesInSwitch": false,
+    "forceConsistentCasingInFileNames": false,
+    "paths": {
+      "@seltra/ai": ["../../packages/ai/src/index.ts"],
+      "@seltra/ai/*": ["../../packages/ai/src/*"],
+      "@seltra/db": ["../../packages/db/src/index.ts"],
+      "@seltra/db/*": ["../../packages/db/src/*"],
+      "@seltra/types": ["../../packages/types/src/index.ts"],
+      "@seltra/types/*": ["../../packages/types/src/*"]
+    }
+  },
+  "include": [
+    "src/**/*",
+    "../../packages/ai/src/**/*",
+    "../../packages/db/src/**/*",
+    "../../packages/types/src/**/*"
+  ]
 }
