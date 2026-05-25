@@ -334,7 +334,7 @@ export default function HomePage() {
 
               <div className="flex items-center gap-3">
                 <a
-                  href={`${process.env.STORE_FRONT_API_URL}/store/${result.blueprint.storeSlug}`}
+                  href={`${process.env.NEXT_PUBLIC_STOREFRONT_URL}/store/${result.blueprint.storeSlug}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex-1 bg-[#00A86B] hover:bg-[#00c47a] text-black font-semibold text-sm py-2.5 rounded-lg text-center transition-colors"
