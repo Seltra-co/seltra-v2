@@ -1,3 +1,4 @@
+// apps/api/webpack.config.js
 const path = require('path')
 
 module.exports = function (options) {

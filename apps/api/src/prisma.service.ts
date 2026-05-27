@@ -1,3 +1,4 @@
+// apps/api/src/prisma.service.ts
 import { Injectable, OnModuleInit } from '@nestjs/common'
 import { prisma } from '@seltra/db'
 import type { PrismaClient } from '@seltra/db'

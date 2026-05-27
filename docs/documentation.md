@@ -11,6 +11,17 @@ AI-generated businesses,
 AI-operated stores,
 AI-managed commerce workflows.
 
+Definition of Commerce stack:
+-A commerce tech stack is a collection of software, tools, and platforms that power an online retailer’s operations, ranging from frontend user experience to backend inventory, payments, and marketing.
+-It includes, the commerce engine, payment processing, tools for marketing, customer support.
+Components of a Modern Commerce Stack:
+1.Frontend (Experience Layer):The user-facing part (Nextjs)
+2.Backend (Application Layer): Handles business logic, including the ecommerce platform (seltra, commercetools allocated), inventory management, and databases.
+3.Payment Processing: Secure transaction handlers like Stripe/Paystack
+4.Marketing & CRM: Tools for customer engagement, email/SMS marketing, and analytics, such as Klaviyo or Mailchimp
+5.Operations & Logistics: Systems for shipping, inventory, and returns.
+
+
 --------- Canonical Commerce Layer (Core Moat)
 * Canonical Schema:
 - commerce primary memory infrastructure for seltra agent.

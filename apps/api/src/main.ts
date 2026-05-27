@@ -1,20 +1,27 @@
-import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
+//apps/api/src/main.ts
+import { NestFactory } from '@nestjs/core'
+import { Logger } from '@nestjs/common'
+import { AppModule } from './app.module'
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const logger = new Logger('Bootstrap')
+  const app = await NestFactory.create(AppModule)
 
-  // app.enableCors({
-  //   origin: 'http://localhost:3000',
-  //   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  //   credentials: true,
-  // });
   app.enableCors({
-  origin: true,
-  credentials: true,
-});
+    origin: true,
+    credentials: true,
+  })
 
-  const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 8000;
-  await app.listen(port);
+  //Graceful shutdown — lets Render drain requests before killing the process
+  app.enableShutdownHooks()
+
+  const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 8000
+  await app.listen(port)
+
+  const baseUrl = process.env.RENDER_EXTERNAL_URL || `http://localhost:${port}`
+  logger.log(`🚀 Seltra API is running on port ${port}`)
+  logger.log(`📡 Health endpoint: ${baseUrl}/health`)
+  logger.log(`⏰ Keep-alive cron: self-ping every 14 minutes`)
 }
-bootstrap();
+
+bootstrap()
